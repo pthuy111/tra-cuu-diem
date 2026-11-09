@@ -98,7 +98,7 @@ var CONFIG = {
   .field{margin-bottom:16px}
   label{display:block; font-weight:600; font-size:14px; margin-bottom:6px}
   label .req{color:var(--err)}
-  select,input{
+  select,input[type="text"]{
     display:block; width:100%; min-height:48px; margin:0;
     font-family:inherit; font-size:16px; /* 16px: tránh iOS tự phóng to khi chạm */
     color:var(--text); background-color:#fff;
@@ -110,8 +110,8 @@ var CONFIG = {
     background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23204195' stroke-width='1.8' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
     background-repeat:no-repeat; background-position:right 14px center; background-size:12px 8px}
   select::-ms-expand{display:none}
-  input::placeholder{color:#9AA3B3; opacity:1}
-  select:focus,input:focus{border-color:var(--iuh-blue); box-shadow:0 0 0 3px rgba(252,182,37,.45)}
+  input[type="text"]::placeholder{color:#9AA3B3; opacity:1}
+  select:focus,input[type="text"]:focus{border-color:var(--iuh-blue); box-shadow:0 0 0 3px rgba(252,182,37,.45)}
   select:disabled{background-color:#F6F7FA; color:var(--muted); cursor:default}
   .invalid{border-color:var(--err)!important}
   .field-err{color:var(--err); font-size:13px; margin-top:5px}
@@ -150,9 +150,10 @@ var CONFIG = {
   .group-title{font-size:12.5px; font-weight:700; text-transform:uppercase; letter-spacing:.6px; color:var(--iuh-blue);
                display:flex; align-items:center; margin-bottom:8px}
   .group-title::before{content:""; width:4px; height:14px; border-radius:2px; background:var(--iuh-yellow); margin-right:8px}
-  .scores{display:grid; grid-template-columns:repeat(auto-fill, minmax(96px, 1fr)); grid-gap:10px; gap:10px}
+  /* Bề rộng ô tính theo em: khi máy đặt cỡ chữ lớn, ô tự rộng ra (ít cột hơn) thay vì làm chữ xuống dòng */
+  .scores{display:grid; grid-template-columns:repeat(auto-fill, minmax(6.8em, 1fr)); grid-gap:10px; gap:10px}
   .score{background:var(--tint); border-radius:10px; padding:10px 12px; min-width:0}
-  .score-label{font-size:12.5px; color:var(--muted); line-height:1.35}
+  .score-label{font-size:12.5px; color:var(--muted); line-height:1.35; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
   .score-val{font-size:22px; font-weight:700; color:var(--iuh-blue); margin-top:2px; font-variant-numeric:tabular-nums}
   .score-val.empty{color:#A0A8B8; font-weight:500; font-size:15px; padding:5px 0 4px}
   .hint{margin-top:18px; font-size:12.5px; color:var(--muted)}
@@ -168,6 +169,21 @@ var CONFIG = {
   .note dt{flex:0 0 120px; font-weight:600; color:var(--iuh-blue); margin-right:12px}
   .note dd{margin:0; flex:1 1 auto; min-width:0; white-space:pre-line}
   @media (max-width:400px){ .note{display:block} .note dt{margin:0 0 2px} }
+
+  /* ---------- Xác nhận đồng ý điểm ---------- */
+  .confirm{margin-top:18px; border:1.5px solid var(--iuh-blue); border-radius:12px; padding:14px 16px; background:#fff}
+  .confirm-title{font-size:12.5px; font-weight:700; text-transform:uppercase; letter-spacing:.6px; color:var(--iuh-blue); margin-bottom:6px}
+  .confirm-hint{font-size:13px; color:var(--muted); margin:0 0 10px}
+  .confirm-warn{font-size:13px; color:#5A4500; background:var(--yellow-tint); border-radius:8px; padding:8px 10px; margin-bottom:10px}
+  .confirm-check{display:flex; align-items:flex-start; cursor:pointer; font-size:14px; font-weight:500; line-height:1.45; margin:0}
+  .confirm-check input{flex:0 0 auto; width:20px; height:20px; margin:1px 10px 0 0; cursor:pointer; accent-color:var(--iuh-blue)}
+  .confirm button{margin-top:12px}
+  .confirm-err{color:var(--err); font-size:13px; margin-top:8px}
+  .confirm-err:empty{display:none}
+  .confirm-done{display:flex; align-items:flex-start; margin-top:18px; background:#E9F6EE; color:#1B5E36;
+                border-radius:12px; padding:12px 14px; font-size:14px; line-height:1.45}
+  .confirm-done svg{flex:0 0 auto; width:20px; height:20px; margin:1px 10px 0 0}
+  .confirm-done b{display:block}
 
   footer{text-align:center; font-size:12px; color:var(--muted);
          padding-top:0; padding-bottom:24px; padding-bottom:calc(24px + env(safe-area-inset-bottom))}
@@ -197,6 +213,9 @@ var CONFIG = {
     .brand-unit{font-size:12.5px}
     .logo{width:48px; height:48px; padding:6px; border-radius:10px; margin-right:12px}
     .chip{font-size:12.5px}
+    .scores{grid-gap:8px; gap:8px}
+    .score{padding:9px 10px}
+    .score-label{font-size:12px; letter-spacing:-.1px}
     .score-val{font-size:20px}
   }
   @media (max-width:340px){
@@ -370,6 +389,42 @@ var CONFIG = {
     return ok;
   }
 
+  /* ---------- Xác nhận đồng ý điểm ---------- */
+  var hienTai = null; // { mon, mssv } của kết quả đang hiển thị
+  function daXacNhanHtml(thoiGian){
+    return '<div class="confirm-done" role="status"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M7.5 12.5l3 3 6-6.5"/></svg>' +
+      '<span><b>Bạn đã xác nhận đồng ý với điểm quá trình.</b>' + (thoiGian ? 'Thời gian xác nhận: ' + esc(thoiGian) + '.' : '') + '</span></div>';
+  }
+  function xacNhanHtml(xn){
+    return '<div class="confirm"><div class="confirm-title">Xác nhận điểm</div>' +
+      (xn.thayDoi ? '<div class="confirm-warn">Điểm đã được cập nhật sau lần xác nhận trước' + (xn.thoiGianCu ? ' (' + esc(xn.thoiGianCu) + ')' : '') + '. Vui lòng xem lại và xác nhận lại.</div>' : '') +
+      '<p class="confirm-hint">Nếu có thắc mắc về điểm, <b>không</b> đánh dấu ô dưới đây và liên hệ trực tiếp giảng viên giảng dạy.</p>' +
+      '<label class="confirm-check"><input type="checkbox" id="xnCheck"><span>Tôi đã xem và đồng ý với các điểm quá trình trên, không có thắc mắc. Sau khi xác nhận, tôi không có ý kiến thay đổi về các điểm này.</span></label>' +
+      '<button type="button" id="xnBtn" disabled><span id="xnText">Xác nhận</span></button>' +
+      '<div class="confirm-err" id="xnErr"></div></div>';
+  }
+  $('result').addEventListener('change', function(e){
+    if (e.target && e.target.id === 'xnCheck') $('xnBtn').disabled = !e.target.checked;
+  });
+  $('result').addEventListener('click', function(e){
+    var btn = e.target && e.target.closest ? e.target.closest('#xnBtn') : null;
+    if (!btn || btn.disabled || !hienTai) return;
+    if (!$('xnCheck').checked) return;
+    btn.disabled = true; $('xnCheck').disabled = true; $('xnErr').textContent = '';
+    $('xnText').textContent = 'Đang gửi xác nhận…';
+    btn.insertAdjacentHTML('afterbegin', '<span class="spin"></span>');
+    goiApi({ action: 'confirm', mon: hienTai.mon, mssv: hienTai.mssv }).then(function(d){
+      if (d && d.ok) { $('xnBox').innerHTML = daXacNhanHtml(d.thoiGian); return; }
+      if (d && d.closed) return dong(d.error);
+      throw new Error((d && d.error) || 'Không gửi được xác nhận.');
+    })['catch'](function(err){
+      var sp = btn.querySelector('.spin'); if (sp) sp.parentNode.removeChild(sp);
+      $('xnText').textContent = 'Xác nhận'; btn.disabled = false; $('xnCheck').disabled = false;
+      $('xnErr').textContent = (err && err.message && err.message.indexOf('http') < 0 && err.message !== 'network' && err.message !== 'timeout')
+        ? err.message : 'Không gửi được xác nhận. Vui lòng kiểm tra mạng và thử lại.';
+    });
+  });
+
   function hienKetQua(d){
     var sv = d.sinhVien || {}, groups = d.groups || [];
     var html = '<div class="sv"><div class="sv-name">' + esc(sv.hoTen || 'Sinh viên') + '</div>' +
@@ -398,7 +453,9 @@ var CONFIG = {
               (d.ghiChuChung ? '<p class="notes-general">' + esc(d.ghiChuChung) + '</p>' : '') +
               (notes ? '<dl>' + notes + '</dl>' : '') + '</div>';
     }
-    html += '<div class="hint">Nếu có thắc mắc về điểm, sinh viên liên hệ trực tiếp giảng viên giảng dạy.</div>';
+    var xn = d.xacNhan || {};
+    if (xn.cho) html += '<div id="xnBox">' + (xn.daXacNhan ? daXacNhanHtml(xn.thoiGian) : xacNhanHtml(xn)) + '</div>';
+    else html += '<div class="hint">Nếu có thắc mắc về điểm, sinh viên liên hệ trực tiếp giảng viên giảng dạy.</div>';
     $('result').innerHTML = html;
     $('result').hidden = false;
     if ($('result').scrollIntoView && window.innerWidth < 768) {
@@ -420,6 +477,7 @@ var CONFIG = {
     if (!kiemTra()) return;
     var mon = $('mon').value, mssv = $('mssv').value.replace(/\s+/g, '');
     store.set('tcd_mon', mon);
+    hienTai = { mon: mon, mssv: mssv };
     if (document.activeElement && document.activeElement.blur) document.activeElement.blur(); // ẩn bàn phím điện thoại
     dangTai(true);
     goiApi({ action: 'lookup', mon: mon, mssv: mssv }).then(function(d){
