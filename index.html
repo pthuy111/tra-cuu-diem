@@ -384,29 +384,42 @@ var CONFIG = {
   }
 
   /* ---------- Tải thông tin & danh sách môn ---------- */
+  /* Thông tin trang + danh sách môn: hiện ngay bản đã lưu trên máy (nếu có), đồng thời tải bản mới */
+  var INFO_KEY = 'tcd_info_v1';
+  function apDungThongTin(d){
+    hienThongTin(d.info);
+    if (!d.open) return dong(d.message);
+    $('closed').hidden = true; $('form').hidden = false;
+    var sel = $('mon'), courses = d.courses || [], cu = sel.value;
+    if (!courses.length) {
+      sel.innerHTML = '<option value="">Chưa có môn học nào mở tra cứu</option>'; sel.disabled = true;
+      return;
+    }
+    var html = '<option value="">— Chọn môn học —</option>';
+    for (var i = 0; i < courses.length; i++) html += '<option value="' + esc(courses[i].id) + '">' + esc(courses[i].ten) + '</option>';
+    sel.innerHTML = html;
+    var chon = cu || store.get('tcd_mon') || '';
+    if (courses.length === 1) sel.value = courses[0].id;
+    else if (chon) { for (var j = 0; j < courses.length; j++) if (courses[j].id === chon) sel.value = chon; }
+    sel.disabled = false;
+  }
   function taiThongTin(){
     if (!CONFIG.API_URL || CONFIG.API_URL.indexOf('http') !== 0) {
       $('mon').innerHTML = '<option value="">Chưa cấu hình</option>';
       baoLoi('Công cụ chưa được cấu hình đường dẫn dữ liệu (API_URL).');
       return;
     }
+    var daHien = false;
+    try {
+      var luu = JSON.parse(store.get(INFO_KEY) || 'null');
+      if (luu && luu.d && luu.u === CONFIG.API_URL && Date.now() - luu.t < 7 * 864e5) { apDungThongTin(luu.d); daHien = true; }
+    } catch(e){}
     goiApi({ action: 'info' }).then(function(d){
       if (!d || !d.ok) throw new Error((d && d.error) || 'Lỗi dữ liệu');
-      hienThongTin(d.info);
-      if (!d.open) return dong(d.message);
-      var sel = $('mon'), courses = d.courses || [];
-      if (!courses.length) {
-        sel.innerHTML = '<option value="">Chưa có môn học nào mở tra cứu</option>';
-        return;
-      }
-      var html = '<option value="">— Chọn môn học —</option>';
-      for (var i = 0; i < courses.length; i++) html += '<option value="' + esc(courses[i].id) + '">' + esc(courses[i].ten) + '</option>';
-      sel.innerHTML = html;
-      var last = store.get('tcd_mon');
-      if (courses.length === 1) sel.value = courses[0].id;
-      else if (last) { for (var j = 0; j < courses.length; j++) if (courses[j].id === last) sel.value = last; }
-      sel.disabled = false;
+      store.set(INFO_KEY, JSON.stringify({ t: Date.now(), u: CONFIG.API_URL, d: d }));
+      apDungThongTin(d);
     })['catch'](function(){
+      if (daHien) return;   // đang dùng bản đã lưu; lỗi mạng sẽ báo khi bấm Tra cứu
       $('mon').innerHTML = '<option value="">Không tải được danh sách</option>';
       baoLoi('Không kết nối được hệ thống tra cứu. Vui lòng kiểm tra mạng và tải lại trang.');
     });
@@ -435,7 +448,7 @@ var CONFIG = {
     return '<div class="confirm"><div class="confirm-title">Xác nhận điểm</div>' +
       (xn.thayDoi ? '<div class="confirm-warn">Điểm đã được cập nhật sau lần xác nhận trước' + (xn.thoiGianCu ? ' (' + esc(xn.thoiGianCu) + ')' : '') + '. Vui lòng xem lại và xác nhận lại.</div>' : '') +
       '<p class="confirm-hint">Nếu có thắc mắc về điểm, <b>không</b> đánh dấu ô dưới đây và ' + (coPhanHoi ? 'gửi phản hồi cho giảng viên ở mục bên dưới.' : 'liên hệ trực tiếp giảng viên giảng dạy.') + '</p>' +
-      '<label class="confirm-check"><input type="checkbox" id="xnCheck"><span>Tôi đã xem và đồng ý với các điểm quá trình trên, không có ý kiến.</span></label>' +
+      '<label class="confirm-check"><input type="checkbox" id="xnCheck"><span>Tôi đã xem và đồng ý với các điểm quá trình trên.</span></label>' +
       '<button type="button" id="xnBtn" disabled><span id="xnText">Xác nhận</span></button>' +
       '<div class="confirm-err" id="xnErr"></div></div>';
   }
@@ -467,7 +480,7 @@ var CONFIG = {
   var IC_CHEV = '<svg class="chev" viewBox="0 0 12 8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M1 1l5 5 5-5"/></svg>';
   var phCauHinh = null;
   function nhacHan(soNgay){
-    return '<div class="fb-deadline">' + IC_CLOCK + '<span>Giảng viên phản hồi <b>chậm nhất ' + soNgay + ' ngày làm việc</b> kể từ khi tiếp nhận ý kiến, và được gửi đến email trường của sinh viên.</span></div>';
+    return '<div class="fb-deadline">' + IC_CLOCK + '<span>Giảng viên phản hồi <b>chậm nhất ' + soNgay + ' ngày làm việc</b> kể từ khi tiếp nhận ý kiến, và gửi đến email trường của sinh viên.</span></div>';
   }
   function dsDaGuiHtml(ds){
     if (!ds || !ds.length) return '';
@@ -496,8 +509,8 @@ var CONFIG = {
         '<p class="fb-intro">Dành cho sinh viên có thắc mắc về điểm số.</p>' + nhacHan(ph.soNgay) +
         '<div class="field"><label for="fbCot">Cột điểm có thắc mắc <span class="req">*</span></label><select id="fbCot">' + opts + '</select><div class="field-err" id="errFbCot"></div></div>' +
         '<div class="field"><label for="fbND">Ý kiến <span class="req">*</span></label>' +
-        '<textarea id="fbND" maxlength="' + (ph.toiDa || 1000) + '" placeholder="Ví dụ: Thực hành 2 – Em đã nộp bài đúng hạn ngày 20/10 nhưng điểm hiển thị là “Chưa có”."></textarea>' +
-        '<div class="fb-help fb-help-row"><span><b>Lưu ý:</b> ghi rõ cột điểm và ý kiến (lý do, minh chứng nếu có).</span><span class="fb-count" id="fbCount">0/' + (ph.toiDa || 1000) + '</span></div><div class="field-err" id="errFbND"></div></div>' +
+        '<textarea id="fbND" maxlength="' + (ph.toiDa || 1000) + '"></textarea>' +
+        '<div class="fb-help fb-help-row"><span></span><span class="fb-count" id="fbCount">0/' + (ph.toiDa || 1000) + '</span></div><div class="field-err" id="errFbND"></div></div>' +
         '<div class="field"><label for="fbEmail">Email trường <span class="req">*</span></label>' +
         '<input id="fbEmail" type="email" inputmode="email" autocomplete="email" autocapitalize="off" spellcheck="false" maxlength="120" placeholder="Email sinh viên do trường cấp' + (duoi ? ' (' + esc(duoi) + ')' : '') + '">' +
         '<div class="fb-help">Giảng viên sẽ gửi câu trả lời đến email này sau khi xử lý.</div><div class="field-err" id="errFbEmail"></div></div>' +
@@ -530,7 +543,7 @@ var CONFIG = {
     ['fbCot','fbND','fbEmail'].forEach(function(id){ $(id).classList.remove('invalid'); });
     $('fbErr').textContent = '';
     if (!cot) { datLoi('fbCot', 'errFbCot', 'Vui lòng chọn cột điểm có thắc mắc.'); ok = false; }
-    if (nd.length < 10) { datLoi('fbND', 'errFbND', 'Vui lòng ghi rõ cột điểm và ý kiến.'); ok = false; }
+    if (nd.length < 10) { datLoi('fbND', 'errFbND', 'Vui lòng ghi rõ cột điểm và ý kiến (ít nhất 10 ký tự).'); ok = false; }
     if (!email) { datLoi('fbEmail', 'errFbEmail', 'Vui lòng nhập email trường để nhận trả lời.'); ok = false; }
     else if (!emailDung(email, duoi)) { datLoi('fbEmail', 'errFbEmail', duoi ? 'Vui lòng dùng email do trường cấp (đuôi @…' + duoi + ').' : 'Email không hợp lệ.'); ok = false; }
     if (!ok) { var f = !cot ? $('fbCot') : (nd.length < 10 ? $('fbND') : $('fbEmail')); try { f.focus(); } catch(e){} return; }
@@ -610,6 +623,7 @@ var CONFIG = {
     var coForm = ph.cho && !(xn.cho && xn.daXacNhan);   // đã xác nhận đồng ý thì không gửi phản hồi nữa
     if (xn.cho) html += '<div id="xnBox">' + (xn.daXacNhan ? daXacNhanHtml(xn.thoiGian) : xacNhanHtml(xn, coForm)) + '</div>';
     if (ph.cho && (coForm || (ph.daGui && ph.daGui.length))) html += phanHoiHtml(ph, coForm, groups);
+    if (!xn.cho && !coForm) html += '<div class="hint">Nếu có thắc mắc về điểm, sinh viên liên hệ trực tiếp giảng viên giảng dạy.</div>';
     $('result').innerHTML = html;
     $('result').hidden = false;
     if ($('result').scrollIntoView && window.innerWidth < 768) {
