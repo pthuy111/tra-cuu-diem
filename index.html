@@ -156,6 +156,18 @@ var CONFIG = {
   .score-val{font-size:22px; font-weight:700; color:var(--iuh-blue); margin-top:2px; font-variant-numeric:tabular-nums}
   .score-val.empty{color:#A0A8B8; font-weight:500; font-size:15px; padding:5px 0 4px}
   .hint{margin-top:18px; font-size:12.5px; color:var(--muted)}
+  .notes{margin-top:20px; background:#FAFBFD; border:1px solid var(--line); border-radius:12px; padding:14px 16px}
+  .notes-title{font-size:12.5px; font-weight:700; text-transform:uppercase; letter-spacing:.6px; color:var(--iuh-blue);
+               display:flex; align-items:center; margin-bottom:6px}
+  .notes-title svg{width:16px; height:16px; margin-right:8px; color:var(--iuh-yellow); flex:0 0 auto}
+  .notes-general{margin:0 0 6px; font-size:13.5px; white-space:pre-line}
+  .notes dl{margin:0}
+  .note{display:flex; padding:8px 0; border-top:1px dashed var(--line); font-size:13.5px; line-height:1.45}
+  .notes dl .note:first-child{border-top:0}
+  .notes-general + dl .note:first-child{border-top:1px dashed var(--line)}
+  .note dt{flex:0 0 120px; font-weight:600; color:var(--iuh-blue); margin-right:12px}
+  .note dd{margin:0; flex:1 1 auto; min-width:0; white-space:pre-line}
+  @media (max-width:400px){ .note{display:block} .note dt{margin:0 0 2px} }
 
   footer{text-align:center; font-size:12px; color:var(--muted);
          padding-top:0; padding-bottom:24px; padding-bottom:calc(24px + env(safe-area-inset-bottom))}
@@ -372,6 +384,19 @@ var CONFIG = {
                 '<div class="score-val' + (co ? '' : ' empty') + '">' + (co ? esc(c.diem) : 'Chưa có') + '</div></div>';
       }
       html += '</div></div>';
+    }
+    /* Ghi chú: cột điểm lấy từ bài kiểm tra / bài tập nào */
+    var notes = '';
+    for (var a = 0; a < groups.length; a++) {
+      for (var b = 0; b < groups[a].cot.length; b++) {
+        var cc = groups[a].cot[b];
+        if (cc.ghiChu) notes += '<div class="note"><dt>' + esc(cc.ten) + '</dt><dd>' + esc(cc.ghiChu) + '</dd></div>';
+      }
+    }
+    if (notes || d.ghiChuChung) {
+      html += '<div class="notes"><div class="notes-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 11v6M12 7.5v.5"/></svg>Ghi chú</div>' +
+              (d.ghiChuChung ? '<p class="notes-general">' + esc(d.ghiChuChung) + '</p>' : '') +
+              (notes ? '<dl>' + notes + '</dl>' : '') + '</div>';
     }
     html += '<div class="hint">Nếu có thắc mắc về điểm, sinh viên liên hệ trực tiếp giảng viên giảng dạy.</div>';
     $('result').innerHTML = html;
