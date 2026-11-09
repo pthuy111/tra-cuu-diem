@@ -98,7 +98,7 @@ var CONFIG = {
   .field{margin-bottom:16px}
   label{display:block; font-weight:600; font-size:14px; margin-bottom:6px}
   label .req{color:var(--err)}
-  select,input[type="text"]{
+  select,input[type="text"],input[type="email"],textarea{
     display:block; width:100%; min-height:48px; margin:0;
     font-family:inherit; font-size:16px; /* 16px: tránh iOS tự phóng to khi chạm */
     color:var(--text); background-color:#fff;
@@ -110,8 +110,8 @@ var CONFIG = {
     background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23204195' stroke-width='1.8' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
     background-repeat:no-repeat; background-position:right 14px center; background-size:12px 8px}
   select::-ms-expand{display:none}
-  input[type="text"]::placeholder{color:#9AA3B3; opacity:1}
-  select:focus,input[type="text"]:focus{border-color:var(--iuh-blue); box-shadow:0 0 0 3px rgba(252,182,37,.45)}
+  input[type="text"]::placeholder,input[type="email"]::placeholder,textarea::placeholder{color:#9AA3B3; opacity:1}
+  select:focus,input[type="text"]:focus,input[type="email"]:focus,textarea:focus{border-color:var(--iuh-blue); box-shadow:0 0 0 3px rgba(252,182,37,.45)}
   select:disabled{background-color:#F6F7FA; color:var(--muted); cursor:default}
   .invalid{border-color:var(--err)!important}
   .field-err{color:var(--err); font-size:13px; margin-top:5px}
@@ -184,6 +184,42 @@ var CONFIG = {
                 border-radius:12px; padding:12px 14px; font-size:14px; line-height:1.45}
   .confirm-done svg{flex:0 0 auto; width:20px; height:20px; margin:1px 10px 0 0}
   .confirm-done b{display:block}
+
+  /* ---------- Gửi phản hồi cho giảng viên ---------- */
+  textarea{min-height:120px; resize:vertical; line-height:1.5; white-space:pre-wrap}
+  .fb{margin-top:16px; border:1px solid var(--line); border-radius:12px; background:#fff; overflow:hidden}
+  .fb-toggle{display:flex; align-items:center; justify-content:space-between; width:100%; min-height:52px; margin:0;
+             background:#fff; color:var(--iuh-blue); border-radius:0; padding:12px 16px; font-size:15px; font-weight:600; text-align:left}
+  .fb-toggle:hover{background:var(--tint)}
+  .fb-toggle .lbl{display:flex; align-items:center}
+  .fb-toggle .lbl svg{width:20px; height:20px; margin-right:10px; flex:0 0 auto}
+  .fb-toggle .chev{width:14px; height:14px; flex:0 0 auto; margin-left:10px; transition:transform .2s}
+  .fb-toggle[aria-expanded="true"] .chev{transform:rotate(180deg)}
+  .fb-body{padding:4px 16px 16px; border-top:1px solid var(--line)}
+  .fb-intro{margin:12px 0 10px; font-size:14px}
+  .fb-deadline{display:flex; align-items:flex-start; font-size:13.5px; color:#5A4500; background:var(--yellow-tint);
+               border-left:4px solid var(--iuh-yellow); border-radius:0 8px 8px 0; padding:9px 12px; margin-bottom:14px; line-height:1.45}
+  .fb-deadline svg{width:17px; height:17px; flex:0 0 auto; margin:1px 8px 0 0; color:#B07F00}
+  .fb .field{margin-bottom:14px}
+  .fb-help{font-size:12.5px; color:var(--muted); margin-top:5px; line-height:1.45}
+  .fb-help b{color:var(--text); font-weight:600}
+  .fb-help-row{display:flex; justify-content:space-between; align-items:flex-start}
+  .fb-count{flex:0 0 auto; margin-left:12px; font-variant-numeric:tabular-nums; white-space:nowrap}
+  .fb-err{color:var(--err); font-size:13px; margin-top:8px}
+  .fb-err:empty{display:none}
+  .fb-ok{margin-top:14px; background:#E9F6EE; color:#1B5E36; border-radius:10px; padding:12px 14px; font-size:14px; line-height:1.5}
+  .fb-ok b{display:block; margin-bottom:2px}
+  .fb-list{padding:12px 16px 14px; border-top:1px solid var(--line); background:#FAFBFD}
+  .fb-list-title{font-size:12.5px; font-weight:700; text-transform:uppercase; letter-spacing:.6px; color:var(--iuh-blue); margin-bottom:6px}
+  .fb-item{display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; padding:7px 0; border-top:1px dashed var(--line); font-size:13px}
+  .fb-item:first-of-type{border-top:0}
+  .fb-item .info{min-width:0; flex:1 1 200px; margin-right:8px}
+  .fb-item .info b{color:var(--iuh-blue)}
+  .fb-item .info span{color:var(--muted)}
+  .badge{display:inline-block; font-size:12px; font-weight:600; border-radius:999px; padding:2px 10px; white-space:nowrap; margin:3px 0}
+  .badge.cho{background:var(--yellow-tint); color:#7A5A00}
+  .badge.dang{background:var(--tint); color:var(--iuh-blue)}
+  .badge.xong{background:#E9F6EE; color:#1B5E36}
 
   footer{text-align:center; font-size:12px; color:var(--muted);
          padding-top:0; padding-bottom:24px; padding-bottom:calc(24px + env(safe-area-inset-bottom))}
@@ -395,11 +431,11 @@ var CONFIG = {
     return '<div class="confirm-done" role="status"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M7.5 12.5l3 3 6-6.5"/></svg>' +
       '<span><b>Bạn đã xác nhận đồng ý với điểm quá trình.</b>' + (thoiGian ? 'Thời gian xác nhận: ' + esc(thoiGian) + '.' : '') + '</span></div>';
   }
-  function xacNhanHtml(xn){
+  function xacNhanHtml(xn, coPhanHoi){
     return '<div class="confirm"><div class="confirm-title">Xác nhận điểm</div>' +
       (xn.thayDoi ? '<div class="confirm-warn">Điểm đã được cập nhật sau lần xác nhận trước' + (xn.thoiGianCu ? ' (' + esc(xn.thoiGianCu) + ')' : '') + '. Vui lòng xem lại và xác nhận lại.</div>' : '') +
-      '<p class="confirm-hint">Nếu có thắc mắc về điểm, <b>không</b> đánh dấu ô dưới đây và liên hệ trực tiếp giảng viên giảng dạy.</p>' +
-      '<label class="confirm-check"><input type="checkbox" id="xnCheck"><span>Tôi đã xem và đồng ý với các điểm quá trình trên, không có thắc mắc. Sau khi xác nhận, tôi không có ý kiến thay đổi về các điểm này.</span></label>' +
+      '<p class="confirm-hint">Nếu có thắc mắc về điểm, <b>không</b> đánh dấu ô dưới đây và ' + (coPhanHoi ? 'gửi phản hồi cho giảng viên ở mục bên dưới.' : 'liên hệ trực tiếp giảng viên giảng dạy.') + '</p>' +
+      '<label class="confirm-check"><input type="checkbox" id="xnCheck"><span>Tôi đã xem và đồng ý với các điểm quá trình trên, không có thắc mắc.</span></label>' +
       '<button type="button" id="xnBtn" disabled><span id="xnText">Xác nhận</span></button>' +
       '<div class="confirm-err" id="xnErr"></div></div>';
   }
@@ -414,7 +450,7 @@ var CONFIG = {
     $('xnText').textContent = 'Đang gửi xác nhận…';
     btn.insertAdjacentHTML('afterbegin', '<span class="spin"></span>');
     goiApi({ action: 'confirm', mon: hienTai.mon, mssv: hienTai.mssv }).then(function(d){
-      if (d && d.ok) { $('xnBox').innerHTML = daXacNhanHtml(d.thoiGian); return; }
+      if (d && d.ok) { $('xnBox').innerHTML = daXacNhanHtml(d.thoiGian); anFormPhanHoi(); return; }
       if (d && d.closed) return dong(d.error);
       throw new Error((d && d.error) || 'Không gửi được xác nhận.');
     })['catch'](function(err){
@@ -423,6 +459,123 @@ var CONFIG = {
       $('xnErr').textContent = (err && err.message && err.message.indexOf('http') < 0 && err.message !== 'network' && err.message !== 'timeout')
         ? err.message : 'Không gửi được xác nhận. Vui lòng kiểm tra mạng và thử lại.';
     });
+  });
+
+  /* ---------- Gửi phản hồi cho giảng viên ---------- */
+  var IC_MSG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/><path d="M8 9h8M8 13h5"/></svg>';
+  var IC_CLOCK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 7v5l3 2"/></svg>';
+  var IC_CHEV = '<svg class="chev" viewBox="0 0 12 8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M1 1l5 5 5-5"/></svg>';
+  var phCauHinh = null;
+  function nhacHan(soNgay){
+    return '<div class="fb-deadline">' + IC_CLOCK + '<span>Giảng viên phản hồi <b>chậm nhất ' + soNgay + ' ngày làm việc</b> kể từ khi tiếp nhận ý kiến, và được gửi đến email trường của sinh viên.</span></div>';
+  }
+  function dsDaGuiHtml(ds){
+    if (!ds || !ds.length) return '';
+    var h = '<div class="fb-list" id="fbList"><div class="fb-list-title">Phản hồi đã gửi</div>';
+    for (var i = 0; i < ds.length; i++) {
+      var x = ds[i], tt = x.trangThai || 'Chờ xử lý';
+      var cls = tt === 'Đã phản hồi' ? 'xong' : (tt === 'Đang xử lý' ? 'dang' : 'cho');
+      h += '<div class="fb-item"><div class="info"><b>' + esc(x.ma) + '</b> · ' + esc(x.cot) + '<br><span>Gửi ' + esc(x.thoiGian) +
+           (cls !== 'xong' && x.han ? ' · hạn trả lời ' + esc(x.han) : '') + '</span></div><span class="badge ' + cls + '">' + esc(tt) + '</span></div>';
+    }
+    return h + '</div>';
+  }
+  function phanHoiHtml(ph, coForm, groups){
+    phCauHinh = ph;
+    var opts = '<option value="">— Chọn cột điểm —</option>';
+    for (var i = 0; i < groups.length; i++) for (var j = 0; j < groups[i].cot.length; j++) {
+      var t = (groups[i].ten ? groups[i].ten + ' – ' : '') + groups[i].cot[j].ten;
+      opts += '<option value="' + esc(t) + '">' + esc(t) + '</option>';
+    }
+    opts += '<option value="Nhiều cột / Khác">Nhiều cột / Khác</option>';
+    var duoi = ph.duoiEmail ? '@…' + ph.duoiEmail : '';
+    var h = '<div class="fb" id="fbBox">';
+    if (coForm) {
+      h += '<button type="button" class="fb-toggle" id="fbToggle" aria-expanded="false" aria-controls="fbBody"><span class="lbl">' + IC_MSG + 'Gửi phản hồi cho giảng viên</span>' + IC_CHEV + '</button>' +
+        '<div class="fb-body" id="fbBody" hidden>' +
+        '<p class="fb-intro">Dành cho sinh viên có thắc mắc về điểm số.</p>' + nhacHan(ph.soNgay) +
+        '<div class="field"><label for="fbCot">Cột điểm có thắc mắc <span class="req">*</span></label><select id="fbCot">' + opts + '</select><div class="field-err" id="errFbCot"></div></div>' +
+        '<div class="field"><label for="fbND">Ý kiến <span class="req">*</span></label>' +
+        '<textarea id="fbND" maxlength="' + (ph.toiDa || 1000) + '" placeholder="Ví dụ: Thực hành 2 – Em đã nộp bài đúng hạn ngày 20/10 nhưng điểm hiển thị là “Chưa có”."></textarea>' +
+        '<div class="fb-help fb-help-row"><span><b>Lưu ý:</b> ghi rõ cột điểm và ý kiến (lý do, minh chứng nếu có).</span><span class="fb-count" id="fbCount">0/' + (ph.toiDa || 1000) + '</span></div><div class="field-err" id="errFbND"></div></div>' +
+        '<div class="field"><label for="fbEmail">Email trường <span class="req">*</span></label>' +
+        '<input id="fbEmail" type="email" inputmode="email" autocomplete="email" autocapitalize="off" spellcheck="false" maxlength="120" placeholder="Email sinh viên do trường cấp' + (duoi ? ' (' + esc(duoi) + ')' : '') + '">' +
+        '<div class="fb-help">Giảng viên sẽ gửi câu trả lời đến email này sau khi xử lý.</div><div class="field-err" id="errFbEmail"></div></div>' +
+        '<button type="button" id="fbBtn"><span id="fbText">Gửi phản hồi</span></button><div class="fb-err" id="fbErr"></div></div>';
+    }
+    return h + dsDaGuiHtml(ph.daGui) + '</div>';
+  }
+  function anFormPhanHoi(){
+    var t = $('fbToggle'), b = $('fbBody');
+    if (t) t.parentNode.removeChild(t);
+    if (b) b.parentNode.removeChild(b);
+    var box = $('fbBox'); if (box && !box.querySelector('.fb-item')) box.parentNode.removeChild(box);
+  }
+  function emailDung(email, duoi){
+    var m = /^[^\s@]+@([^\s@]+\.[^\s@]+)$/.exec(email);
+    if (!m) return false;
+    if (!duoi) return true;
+    var d = m[1].toLowerCase(); duoi = duoi.toLowerCase();
+    return d === duoi || d.slice(-(duoi.length + 1)) === '.' + duoi;
+  }
+  function goiApiPost(data){
+    if (!window.fetch) return Promise.reject(new Error('nofetch'));
+    return fetch(CONFIG.API_URL, { method: 'POST', body: JSON.stringify(data), redirect: 'follow' })
+      .then(function(r){ if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); });
+  }
+  function guiPhanHoi(){
+    var cot = $('fbCot').value, nd = $('fbND').value.trim(), email = $('fbEmail').value.trim().toLowerCase();
+    var duoi = (phCauHinh && phCauHinh.duoiEmail) || '', ok = true;
+    ['errFbCot','errFbND','errFbEmail'].forEach(function(id){ $(id).textContent = ''; });
+    ['fbCot','fbND','fbEmail'].forEach(function(id){ $(id).classList.remove('invalid'); });
+    $('fbErr').textContent = '';
+    if (!cot) { datLoi('fbCot', 'errFbCot', 'Vui lòng chọn cột điểm có thắc mắc.'); ok = false; }
+    if (nd.length < 10) { datLoi('fbND', 'errFbND', 'Vui lòng ghi rõ cột điểm và ý kiến.'); ok = false; }
+    if (!email) { datLoi('fbEmail', 'errFbEmail', 'Vui lòng nhập email trường để nhận trả lời.'); ok = false; }
+    else if (!emailDung(email, duoi)) { datLoi('fbEmail', 'errFbEmail', duoi ? 'Vui lòng dùng email do trường cấp (đuôi @…' + duoi + ').' : 'Email không hợp lệ.'); ok = false; }
+    if (!ok) { var f = !cot ? $('fbCot') : (nd.length < 10 ? $('fbND') : $('fbEmail')); try { f.focus(); } catch(e){} return; }
+    store.set('tcd_email', email);
+    var btn = $('fbBtn');
+    btn.disabled = true; $('fbText').textContent = 'Đang gửi…'; btn.insertAdjacentHTML('afterbegin', '<span class="spin"></span>');
+    var data = { action: 'feedback', mon: hienTai.mon, mssv: hienTai.mssv, email: email, cot: cot, noidung: nd,
+                 rid: 'r' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8) };
+    goiApiPost(data)['catch'](function(){ return goiApi(data); }).then(function(d){
+      if (d && d.ok) {
+        $('fbBody').innerHTML = '<div class="fb-ok"><b>Đã gửi phản hồi ' + esc(d.ma) + ' lúc ' + esc(d.thoiGian) + '.</b>' +
+          'Giảng viên sẽ trả lời qua email <b style="display:inline">' + esc(d.email) + '</b> chậm nhất ngày <b style="display:inline">' + esc(d.han) + '</b> (' + esc(d.soNgay) + ' ngày làm việc kể từ khi tiếp nhận).</div>';
+        var l = $('fbList'); if (l) l.parentNode.removeChild(l);
+        $('fbBox').insertAdjacentHTML('beforeend', dsDaGuiHtml(d.daGui));
+        return;
+      }
+      if (d && d.closed) return dong(d.error);
+      if (d && d.field) {
+        var map = { email: ['fbEmail','errFbEmail'], cot: ['fbCot','errFbCot'], noidung: ['fbND','errFbND'] }[d.field];
+        if (map) { datLoi(map[0], map[1], d.error); throw { daBao: true }; }
+      }
+      throw new Error((d && d.error) || 'Không gửi được phản hồi.');
+    })['catch'](function(err){
+      var sp = btn.querySelector('.spin'); if (sp) sp.parentNode.removeChild(sp);
+      $('fbText').textContent = 'Gửi phản hồi'; btn.disabled = false;
+      if (err && err.daBao) return;
+      $('fbErr').textContent = (err && err.message && err.message.indexOf('HTTP') !== 0 && err.message !== 'network' && err.message !== 'timeout')
+        ? err.message : 'Không gửi được phản hồi. Vui lòng kiểm tra mạng và thử lại.';
+    });
+  }
+  $('result').addEventListener('click', function(e){
+    var t = e.target && e.target.closest ? e.target : null; if (!t) return;
+    if (t.closest('#fbToggle')) {
+      var tg = $('fbToggle'), open = tg.getAttribute('aria-expanded') !== 'true';
+      tg.setAttribute('aria-expanded', open ? 'true' : 'false'); $('fbBody').hidden = !open;
+      if (open) { var em = store.get('tcd_email'); if (em && !$('fbEmail').value) $('fbEmail').value = em; }
+    } else if (t.closest('#fbBtn') && !$('fbBtn').disabled) guiPhanHoi();
+  });
+  $('result').addEventListener('input', function(e){
+    var id = e.target && e.target.id;
+    if (id === 'fbND') $('fbCount').textContent = e.target.value.length + '/' + ((phCauHinh && phCauHinh.toiDa) || 1000);
+    if (id === 'fbND' || id === 'fbEmail') { e.target.classList.remove('invalid'); $(id === 'fbND' ? 'errFbND' : 'errFbEmail').textContent = ''; }
+  });
+  $('result').addEventListener('change', function(e){
+    if (e.target && e.target.id === 'fbCot') { e.target.classList.remove('invalid'); $('errFbCot').textContent = ''; }
   });
 
   function hienKetQua(d){
@@ -453,9 +606,10 @@ var CONFIG = {
               (d.ghiChuChung ? '<p class="notes-general">' + esc(d.ghiChuChung) + '</p>' : '') +
               (notes ? '<dl>' + notes + '</dl>' : '') + '</div>';
     }
-    var xn = d.xacNhan || {};
-    if (xn.cho) html += '<div id="xnBox">' + (xn.daXacNhan ? daXacNhanHtml(xn.thoiGian) : xacNhanHtml(xn)) + '</div>';
-    else html += '<div class="hint">Nếu có thắc mắc về điểm, sinh viên liên hệ trực tiếp giảng viên giảng dạy.</div>';
+    var xn = d.xacNhan || {}, ph = d.phanHoi || {};
+    var coForm = ph.cho && !(xn.cho && xn.daXacNhan);   // đã xác nhận đồng ý thì không gửi phản hồi nữa
+    if (xn.cho) html += '<div id="xnBox">' + (xn.daXacNhan ? daXacNhanHtml(xn.thoiGian) : xacNhanHtml(xn, coForm)) + '</div>';
+    if (ph.cho && (coForm || (ph.daGui && ph.daGui.length))) html += phanHoiHtml(ph, coForm, groups);
     $('result').innerHTML = html;
     $('result').hidden = false;
     if ($('result').scrollIntoView && window.innerWidth < 768) {
